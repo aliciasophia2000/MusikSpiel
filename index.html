@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Turntable</title>
 
 <style>
@@ -13,130 +13,116 @@
     display:flex;
     justify-content:center;
     min-height:100vh;
-    color:#111;
   }
-  .wrap{ width:min(520px,92vw); padding:22px 0 40px; }
+
+  .wrap{
+    width:min(520px,92vw);
+    padding:22px 0 40px;
+  }
+
   .panel{
     background:#fff;
     border-radius:18px;
     box-shadow:0 18px 60px rgba(0,0,0,.10);
     padding:16px;
   }
+
   .turntable{
-    position:relative;
     border-radius:14px;
     overflow:hidden;
-    background:#eee;
-  }
-  .turntable img{ display:block; width:100%; height:auto; }
-
-  /* Spotify-iframe: NICHT offscreen, nur unsichtbar und über die gesamte Fläche,
-     damit iOS ihn als „interaktive Quelle“ akzeptiert. */
-  .spotifyLayer{
-    position:absolute;
-    inset:0;
-    opacity:0.01;           /* praktisch unsichtbar, aber „da“ */
-    pointer-events:auto;    /* wichtig: iOS braucht echte Interaktion möglich */
   }
 
-  .overlay{
-    position:absolute;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    pointer-events:none;
+  .turntable img{
+    width:100%;
+    display:block;
   }
-  .btn{
-    pointer-events:auto;
+
+  .playBtn{
+    margin-top:18px;
+    width:100%;
+    padding:16px;
+    border-radius:12px;
     border:0;
-    background:rgba(17,17,17,.92);
+    background:#111;
     color:#fff;
-    border-radius:999px;
-    padding:14px 18px;
-    font-weight:800;
-    letter-spacing:.02em;
-    box-shadow:0 12px 30px rgba(0,0,0,.20);
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.04em;
     cursor:pointer;
   }
-  .btn:active{ transform:translateY(1px); }
+
+  .playBtn:active{
+    transform:translateY(1px);
+  }
 
   .hint{
     margin-top:12px;
     font-size:13px;
     color:#777;
-    line-height:1.35;
   }
-  .error{
-    margin-top:12px;
-    padding:12px 14px;
-    background:#fff3f3;
-    border-radius:12px;
-    font-size:14px;
-    color:#8a1f1f;
+
+  .spotifyBox{
+    margin-top:16px;
   }
+
 </style>
 </head>
 
 <body>
 <div class="wrap">
   <div class="panel">
+
     <div class="turntable">
-
-      <!-- ✅ Dein Bildname (bei dir: turntable.jpg.JPG) -->
-      <img src="turntable.jpg.JPG" alt="Turntable" />
-
-      <!-- Spotify iframe liegt ÜBER dem Bild (quasi unsichtbar) -->
-      <iframe
-        id="sp"
-        class="spotifyLayer"
-        src=""
-        width="100%"
-        height="100%"
-        frameborder="0"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
-      </iframe>
-
-      <!-- Sichtbarer PLAY Button -->
-      <div class="overlay">
-        <button class="btn" id="playBtn">▶︎ PLAY</button>
-      </div>
-
+      <img src="turntable.jpg.JPG" alt="Turntable">
     </div>
 
-    <div class="hint" id="hint">
-      iPhone: Tippe auf PLAY. Wenn es nicht startet, tippe einmal irgendwo auf das Bild (das trifft den unsichtbaren Spotify-Player) – dann läuft’s.
+    <button class="playBtn" id="playBtn">▶︎ PLAY SONG</button>
+
+    <div class="spotifyBox" id="spotifyBox"></div>
+
+    <div class="hint">
+      iPhone blockiert Autoplay – einmal auf PLAY tippen genügt.
     </div>
 
-    <div id="msg"></div>
   </div>
 </div>
 
 <script>
-  const songs = {
-    1: { spotify: "6oHDvarQSp0mf5AD1SyNH0" } // Namika – Lieblingsmensch
-  };
 
-  const params = new URLSearchParams(window.location.search);
-  const songId = params.get("song");
-  const sp = document.getElementById("sp");
-  const playBtn = document.getElementById("playBtn");
-  const msg = document.getElementById("msg");
+const songs = {
+  1: { spotify: "6oHDvarQSp0mf5AD1SyNH0" }
+};
 
-  if (!songId || !songs[songId]) {
-    msg.innerHTML = `<div class="error">Fehlt <b>?song=1</b> in der URL oder Song-ID existiert nicht.</div>`;
-    playBtn.disabled = true;
-  } else {
-    const trackId = songs[songId].spotify;
+const params = new URLSearchParams(window.location.search);
+const songId = params.get("song");
 
-    // iframe initial laden (ohne autoplay)
-    sp.src = `https://open.spotify.com/embed/track/${trackId}?autoplay=0`;
+const playBtn = document.getElementById("playBtn");
+const spotifyBox = document.getElementById("spotifyBox");
 
-    playBtn.addEventListener("click", () => {
-      // Autoplay versuchen (nach User-Tap ist die Chance höher)
-      sp.src = `https://open.spotify.com/embed/track/${trackId}?autoplay=1`;
-    });
-  }
+if(songId && songs[songId]){
+
+  const trackId = songs[songId].spotify;
+
+  playBtn.addEventListener("click", () => {
+
+    spotifyBox.innerHTML = `
+      <iframe 
+        src="https://open.spotify.com/embed/track/${trackId}?autoplay=1"
+        width="100%"
+        height="380"
+        frameborder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+      </iframe>
+    `;
+
+    playBtn.style.display = "none"; // Button verschwindet nach Start
+  });
+
+}else{
+  playBtn.disabled = true;
+  spotifyBox.innerHTML = "Song-ID fehlt in der URL.";
+}
+
 </script>
 </body>
 </html>
