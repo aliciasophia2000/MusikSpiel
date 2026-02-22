@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Retro Music Challenge</title>
+
+<style>
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #1a0033, #000);
+  font-family: 'Courier New', monospace;
+  color: #00ffe7;
+  text-align: center;
+  padding: 40px;
+}
+
+h1 {
+  font-size: 40px;
+  text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffe7;
+  margin-bottom: 30px;
+}
+
+.player-box {
+  background: #111;
+  border: 3px solid #ff00ff;
+  padding: 20px;
+  display: inline-block;
+  box-shadow: 0 0 20px #ff00ff;
+}
+
+button {
+  margin-top: 25px;
+  padding: 15px 30px;
+  font-size: 18px;
+  background: black;
+  border: 2px solid #00ffe7;
+  color: #00ffe7;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #00ffe7;
+  color: black;
+  box-shadow: 0 0 15px #00ffe7;
+}
+
+.solution {
+  display: none;
+  margin-top: 25px;
+  font-size: 26px;
+  color: #ff00ff;
+  text-shadow: 0 0 10px #ff00ff;
+}
+
+.timer {
+  font-size: 20px;
+  margin-top: 20px;
+  color: yellow;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎵 RETRO MUSIC CHALLENGE 🎵</h1>
+
+<div class="player-box">
+  <div id="player"></div>
+</div>
+
+<div class="timer" id="timer"></div>
+
+<br>
+<button onclick="showSolution()">AUFLÖSEN</button>
+
+<div class="solution" id="solution"></div>
+
+<script>
+
+const songs = {
+  1: {
+    spotify: "4uLU6hMCjMI75M1A2tKUQC",
+    year: "2019",
+    artist: "The Weeknd"
+  },
+  2: {
+    spotify: "3AJwUDP919kvQ9QcozQPxg",
+    year: "2003",
+    artist: "The Killers"
+  }
+};
+
+const params = new URLSearchParams(window.location.search);
+const songId = params.get("song");
+
+if (songs[songId]) {
+  document.getElementById("player").innerHTML = `
+  <iframe style="border-radius:12px"
+  src="https://open.spotify.com/embed/track/${songs[songId].spotify}"
+  width="300" height="380"
+  frameBorder="0"
+  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+  </iframe>
+  `;
+
+  window.solutionText = songs[songId].year + " – " + songs[songId].artist;
+  startTimer();
+}
+
+function showSolution() {
+  document.getElementById("solution").innerHTML = window.solutionText;
+  document.getElementById("solution").style.display = "block";
+}
+
+function startTimer() {
+  let timeLeft = 15;
+  const timerElement = document.getElementById("timer");
+  timerElement.innerHTML = "⏳ Zeit: " + timeLeft;
+
+  const countdown = setInterval(() => {
+    timeLeft--;
+    timerElement.innerHTML = "⏳ Zeit: " + timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(countdown);
+      timerElement.innerHTML = "💥 Zeit abgelaufen!";
+    }
+  }, 1000);
+}
+
+</script>
+
+</body>
+</html>
