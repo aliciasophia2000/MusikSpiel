@@ -6,142 +6,187 @@
 <title>Music Card</title>
 
 <style>
-body{
-  margin:0;
-  background:#f4f4f2;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  display:flex;
-  justify-content:center;
-  min-height:100vh;
-  color:#111;
-}
+  body{
+    margin:0;
+    background:#f4f4f2;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+    color:#111;
+  }
+  .wrap{
+    width:min(900px,92vw);
+    padding:44px 0 64px;
+    position:relative;
+  }
 
-.wrap{
-  width:min(900px,92vw);
-  padding:40px 0 60px;
-  position:relative;
-}
+  /* ✅ Schallplatte: kleiner + heller + weiter nach rechts */
+  .record{
+    position:absolute;
+    top:-120px;
+    right:-220px;
+    width:520px;
+    height:520px;
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 50%, #f4f4f2 0 18%, transparent 19%),
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,.14) 0 100%);
+    box-shadow:0 40px 80px rgba(0,0,0,.10);
+    opacity:.55;
+    pointer-events:none;
+  }
 
-.record{
-  position:absolute;
-  top:-60px;
-  right:-140px;
-  width:500px;
-  height:500px;
-  border-radius:50%;
-  background:
-    radial-gradient(circle at 50% 50%, #f4f4f2 0 20%, transparent 21%),
-    radial-gradient(circle at 50% 50%, #111 0 100%);
-  box-shadow:0 40px 80px rgba(0,0,0,.12);
-  opacity:.9;
-}
+  h1{
+    font-size:clamp(34px,6vw,64px);
+    margin:0 0 10px 0;
+    letter-spacing:-0.04em;
+  }
+  .sub{
+    color:#666;
+    font-size:14px;
+    margin-bottom:34px;
+    max-width:55ch;
+  }
 
-h1{
-  font-size:clamp(36px,6vw,72px);
-  margin:0 0 10px 0;
-  letter-spacing:-0.04em;
-}
+  .stage{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:520px;
+  }
+  .card{
+    width:min(460px,92vw);
+    background:#fff;
+    border-radius:18px;
+    box-shadow:0 18px 60px rgba(0,0,0,.10);
+    padding:22px;
+  }
 
-.sub{
-  color:#666;
-  font-size:14px;
-  margin-bottom:40px;
-}
+  .playerWrap{
+    border-radius:14px;
+    overflow:hidden;
+    position:relative;
+    background:#eee;
+  }
 
-.stage{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:500px;
-}
+  /* ✅ Blur bleibt IMMER, aber ohne pointer-events block */
+  .blurred{
+    filter:blur(18px);
+    transform:scale(1.05);
+  }
 
-.card{
-  width:min(460px,92vw);
-  background:#fff;
-  border-radius:18px;
-  box-shadow:0 18px 60px rgba(0,0,0,.10);
-  padding:24px;
-}
+  /* ✅ Overlay-Button ist klickbar */
+  .overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none; /* nur Button bekommt Events */
+  }
+  .playBtn{
+    pointer-events:auto;
+    border:1px solid rgba(0,0,0,.15);
+    background:#fff;
+    border-radius:999px;
+    padding:14px 18px;
+    font-weight:700;
+    letter-spacing:.02em;
+    cursor:pointer;
+    box-shadow:0 12px 30px rgba(0,0,0,.12);
+  }
+  .playBtn:active{ transform:translateY(1px); }
 
-.playerWrap{
-  border-radius:14px;
-  overflow:hidden;
-}
+  .hint{
+    margin-top:14px;
+    font-size:13px;
+    color:#777;
+    line-height:1.35;
+  }
 
-.blurred{
-  filter:blur(18px);
-  transform:scale(1.05);
-  pointer-events:none; /* verhindert Spicken */
-}
+  .error{
+    padding:14px;
+    background:#fff3f3;
+    border-radius:12px;
+    font-size:14px;
+  }
 
-.hint{
-  margin-top:14px;
-  font-size:13px;
-  color:#777;
-}
-
-.error{
-  padding:14px;
-  background:#fff3f3;
-  border-radius:12px;
-  font-size:14px;
-}
+  @media (max-width:520px){
+    .record{ width:440px; height:440px; right:-260px; top:-170px; opacity:.45; }
+    .stage{ min-height:480px; }
+  }
 </style>
 </head>
 
 <body>
-
 <div class="wrap">
-  <div class="record"></div>
+  <div class="record" aria-hidden="true"></div>
 
   <h1>Music Card</h1>
-  <div class="sub">Scanne die Karte, höre den Song und lege ihn zeitlich ein.</div>
+  <div class="sub">Scanne die Karte, höre den Song und lege ihn zeitlich ein. Lösung steht auf der Rückseite der Karte.</div>
 
   <div class="stage">
     <div class="card">
       <div class="playerWrap">
+        <!-- Spotify Player (immer blurred) -->
         <div id="player" class="blurred"></div>
+
+        <!-- ✅ Klickbares Overlay -->
+        <div class="overlay">
+          <button class="playBtn" id="playBtn">▶︎ PLAY</button>
+        </div>
       </div>
 
-      <div class="hint">
-        Hinweis: Auf iPhones muss man evtl. einmal kurz auf Play tippen (Autoplay-Sperre).
+      <div class="hint" id="hint">
+        Tipp: iPhones blockieren Autoplay – einmal auf PLAY tippen, dann läuft’s.
       </div>
     </div>
   </div>
 </div>
 
 <script>
-
-// 🎵 HIER DEINE SONGS EINTRAGEN
-const songs = {
-  1: { spotify: "6oHDvarQSp0mf5AD1SyNH0"}
+  // 🎵 SONGS
+  const songs = {
+    1: { spotify: "6oHDvarQSp0mf5AD1SyNH0" } // Namika – Lieblingsmensch
   };
-  
-  // 2: { spotify: "SPOTIFY-ID" },
-  // 3: { spotify: "SPOTIFY-ID" },
-};
 
-const params = new URLSearchParams(window.location.search);
-const songId = params.get("song");
-const player = document.getElementById("player");
+  const params = new URLSearchParams(window.location.search);
+  const songId = params.get("song");
+  const player = document.getElementById("player");
+  const playBtn = document.getElementById("playBtn");
 
-if(songId && songs[songId]){
-  const trackId = songs[songId].spotify;
+  if(songId && songs[songId]){
+    const trackId = songs[songId].spotify;
 
-  player.innerHTML = `
-    <iframe
-      src="https://open.spotify.com/embed/track/${trackId}?autoplay=1"
-      width="100%"
-      height="380"
-      frameborder="0"
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
-    </iframe>
-  `;
-} else {
-  player.classList.remove("blurred");
-  player.innerHTML = `<div class="error">Fehlt ?song=1 in der URL.</div>`;
-}
+    // ✅ Player laden (Autoplay versuchen)
+    player.innerHTML = `
+      <iframe
+        id="sp"
+        src="https://open.spotify.com/embed/track/${trackId}?autoplay=1"
+        width="100%"
+        height="380"
+        frameborder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+      </iframe>
+    `;
 
+    // ✅ Auf PLAY: iOS braucht oft User-Interaction.
+    // Wir "refreshen" das iframe, damit Spotify nach dem Tap startet.
+    playBtn.addEventListener("click", () => {
+      const iframe = document.getElementById("sp");
+      if(iframe){
+        const src = iframe.getAttribute("src");
+        iframe.setAttribute("src", src); // reload -> startet oft nach Tap
+      }
+    });
+
+  } else {
+    player.classList.remove("blurred");
+    player.innerHTML = `<div class="error">Fehlt <b>?song=1</b> in der URL (oder Song existiert nicht).</div>`;
+    document.getElementById("hint").textContent = "Beispiel: https://aliciasophia2000.github.io/?song=1";
+    playBtn.style.display = "none";
+  }
 </script>
 
 </body>
