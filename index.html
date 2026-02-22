@@ -69,8 +69,6 @@ button:hover {
   <div id="player"></div>
 </div>
 
-<div class="timer" id="timer"></div>
-
 <br>
 <button onclick="showSolution()">AUFLÖSEN</button>
 
@@ -89,39 +87,28 @@ const params = new URLSearchParams(window.location.search);
 const songId = params.get("song");
 
 if (songs[songId]) {
-  document.getElementById("player").innerHTML = `
-  <iframe style="border-radius:12px"
-  src="https://open.spotify.com/embed/track/${songs[songId].spotify}"
-  width="300" height="380"
-  frameBorder="0"
-  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
-  </iframe>
+document.getElementById("player").innerHTML = `
+  <div id="blurWrap" style="filter: blur(14px); pointer-events:none;">
+    <iframe style="border-radius:12px"
+    src="https://open.spotify.com/embed/track/${songs[songId].spotify}"
+    width="300" height="380"
+    frameBorder="0"
+    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+    </iframe>
+  </div>
   `;
 
   window.solutionText = songs[songId].year + " – " + songs[songId].artist;
-  startTimer();
 }
 
 function showSolution() {
-  document.getElementById("solution").innerHTML = window.solutionText;
+document.getElementById("solution").innerHTML = window.solutionText;
   document.getElementById("solution").style.display = "block";
+
+  // Blur entfernen, damit man sieht was es war
+  const bw = document.getElementById("blurWrap");
+  if (bw) bw.style.filter = "none";
 }
-
-function startTimer() {
-  let timeLeft = 15;
-  const timerElement = document.getElementById("timer");
-  timerElement.innerHTML = "⏳ Zeit: " + timeLeft;
-
-  const countdown = setInterval(() => {
-    timeLeft--;
-    timerElement.innerHTML = "⏳ Zeit: " + timeLeft;
-    if (timeLeft <= 0) {
-      clearInterval(countdown);
-      timerElement.innerHTML = "💥 Zeit abgelaufen!";
-    }
-  }, 1000);
-}
-
 </script>
 
 </body>
