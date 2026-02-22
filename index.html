@@ -1,151 +1,162 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Music Card</title>
 
 <style>
-body{
-  margin:0;
-  background:#f4f4f2;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  display:flex;
-  justify-content:center;
-  min-height:100vh;
-  color:#111;
-}
-.wrap{
-  width:min(900px,92vw);
-  padding:44px 0 64px;
-  position:relative;
-}
-.record{
-  position:absolute;
-  top:-140px;
-  right:-260px;
-  width:520px;
-  height:520px;
-  border-radius:50%;
-  background: radial-gradient(circle at 50% 50%, rgba(0,0,0,.15) 0 100%);
-  opacity:.45;
-  pointer-events:none;
-}
-h1{
-  font-size:clamp(34px,6vw,64px);
-  margin:0 0 10px 0;
-  letter-spacing:-0.04em;
-}
-.sub{
-  color:#666;
-  font-size:14px;
-  margin-bottom:34px;
-  max-width:55ch;
-}
-.stage{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:520px;
-}
-.card{
-  width:min(460px,92vw);
-  background:#fff;
-  border-radius:18px;
-  box-shadow:0 18px 60px rgba(0,0,0,.10);
-  padding:22px;
-}
-.playerWrap{
-  border-radius:14px;
-  overflow:hidden;
-}
-.blurred{
-  filter:blur(18px);
-  transform:scale(1.05);
-}
-.playBtn{
-  margin-top:18px;
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,.15);
-  background:#111;
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
-}
-.playBtn:active{
-  transform:translateY(1px);
-}
-.hint{
-  margin-top:14px;
-  font-size:13px;
-  color:#777;
-}
-.error{
-  padding:14px;
-  background:#fff3f3;
-  border-radius:12px;
-  font-size:14px;
-}
+  body{
+    margin:0;
+    background:#f4f4f2;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+    color:#111;
+  }
+  .wrap{
+    width:min(520px, 92vw);
+    padding:22px 0 40px;
+  }
+
+  .panel{
+    background:#fff;
+    border-radius:18px;
+    box-shadow:0 18px 60px rgba(0,0,0,.10);
+    padding:16px;
+  }
+
+  /* Turntable-Bild */
+  .turntable{
+    position:relative;
+    border-radius:14px;
+    overflow:hidden;
+    background:#eee;
+  }
+  .turntable img{
+    display:block;
+    width:100%;
+    height:auto;
+  }
+
+  /* Klickfläche über dem Bild */
+  .overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+  }
+
+  .btn{
+    pointer-events:auto;
+    border:0;
+    background:rgba(17,17,17,.92);
+    color:#fff;
+    border-radius:999px;
+    padding:14px 18px;
+    font-weight:700;
+    letter-spacing:.02em;
+    box-shadow:0 12px 30px rgba(0,0,0,.20);
+  }
+  .btn:active{ transform:translateY(1px); }
+
+  .hint{
+    margin-top:12px;
+    font-size:13px;
+    color:#777;
+    line-height:1.35;
+  }
+
+  .error{
+    margin-top:12px;
+    padding:12px 14px;
+    background:#fff3f3;
+    border-radius:12px;
+    font-size:14px;
+    color:#8a1f1f;
+  }
+
+  /* Spotify iframe: unsichtbar aber vorhanden */
+  .spotifyHidden{
+    position:absolute;
+    left:-9999px;
+    top:-9999px;
+    width:1px;
+    height:1px;
+    opacity:0;
+    pointer-events:none;
+  }
 </style>
 </head>
 
 <body>
 <div class="wrap">
-  <div class="record"></div>
+  <div class="panel">
+    <div class="turntable">
+      <!-- ✅ 1) Lege dein Bild ins Repo und nenne es turntable.jpg -->
+      <img src="turntable.jpg" alt="Turntable" />
 
-  <h1>Music Card</h1>
-  <div class="sub">Scanne die Karte, höre den Song und lege ihn zeitlich ein.</div>
-
-  <div class="stage">
-    <div class="card">
-      <div class="playerWrap">
-        <div id="player" class="blurred"></div>
-      </div>
-
-      <button class="playBtn" id="revealBtn">PLAY</button>
-
-      <div class="hint">
-        Tipp: Wenn nichts startet, direkt im Spotify-Player auf Play tippen (iOS Autoplay-Sperre).
+      <div class="overlay">
+        <button class="btn" id="playBtn">▶︎ PLAY</button>
       </div>
     </div>
+
+    <div class="hint" id="hint">
+      Tipp: iPhone blockt manchmal Autoplay. Wenn nichts startet, tippe einmal unten im Spotify-Player (öffnet sich nicht sichtbar, aber startet nach Interaktion).
+    </div>
+
+    <div id="msg"></div>
+
+    <!-- Unsichtbarer Spotify Player -->
+    <div id="spotifyMount"></div>
   </div>
 </div>
 
 <script>
-const songs = {
-  1: { spotify: "6oHDvarQSp0mf5AD1SyNH0" }
-};
+  // 🎵 SONGS: nur Spotify Track IDs
+  const songs = {
+    1: { spotify: "6oHDvarQSp0mf5AD1SyNH0" } // Namika – Lieblingsmensch
+    // 2: { spotify: "..." },
+  };
 
-const params = new URLSearchParams(window.location.search);
-const songId = params.get("song");
-const player = document.getElementById("player");
-const revealBtn = document.getElementById("revealBtn");
+  const params = new URLSearchParams(window.location.search);
+  const songId = params.get("song");
+  const mount = document.getElementById("spotifyMount");
+  const msg = document.getElementById("msg");
+  const playBtn = document.getElementById("playBtn");
 
-if(songId && songs[songId]){
-  const trackId = songs[songId].spotify;
+  if (!songId || !songs[songId]) {
+    msg.innerHTML = `<div class="error">Fehlt <b>?song=1</b> in der URL oder Song-ID existiert nicht.</div>`;
+    playBtn.disabled = true;
+  } else {
+    const trackId = songs[songId].spotify;
 
-  player.innerHTML = `
-    <iframe
-      src="https://open.spotify.com/embed/track/${trackId}?autoplay=1"
-      width="100%"
-      height="380"
-      frameborder="0"
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
-    </iframe>
-  `;
+    // Spotify iframe wird erzeugt, aber „versteckt“
+    mount.innerHTML = `
+      <iframe
+        id="sp"
+        class="spotifyHidden"
+        src="https://open.spotify.com/embed/track/${trackId}?autoplay=0"
+        width="300"
+        height="380"
+        frameborder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+      </iframe>
+    `;
 
-  revealBtn.addEventListener("click", () => {
-    player.classList.remove("blurred");
-  });
+    playBtn.addEventListener("click", () => {
+      const iframe = document.getElementById("sp");
+      if (!iframe) return;
 
-} else {
-  player.classList.remove("blurred");
-  player.innerHTML = `<div class="error">Fehlt ?song=1 in der URL.</div>`;
-}
+      // Versuch: Autoplay starten (auf iPhone ggf. blockiert)
+      const base = `https://open.spotify.com/embed/track/${trackId}`;
+      iframe.src = base + "?autoplay=1";
+    });
+  }
 </script>
-
 </body>
 </html>
   
